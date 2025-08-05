@@ -1,0 +1,24 @@
+.admin-main {
+  padding-top: 2rem;
+  min-height: 80vh;
+}
+
+.admin-panel {
+  padding: 2rem;
+}
+
+.admin-panel table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.admin-panel th, .admin-panel td {
+  border: 1px solid #ddd;
+  padding: 0.5rem;
+}
+
+.admin-panel input, .admin-panel select {
+  width: 100%;
+}
+
+
