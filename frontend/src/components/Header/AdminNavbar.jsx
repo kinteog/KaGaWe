@@ -7,6 +7,11 @@ import { FaChevronDown } from 'react-icons/fa';
 import '../Header/header.css'; // Reuse main header styles
 
 const admin_dropdowns = [
+
+  {
+    path: '/admin',
+    label: 'Dashboard',
+  },
   {
     label: 'Services & Products',
     subItems: [
@@ -48,24 +53,30 @@ const AdminNavbar = () => {
     navigate('/');
   };
 
-  const stickyHeaderFunc = () => {
-    window.addEventListener('scroll', () => {
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!headerRef.current) return; // Avoid null errors
+
       if (document.body.scrollTop > 80 || document.documentElement.scrollTop > 80) {
         headerRef.current.classList.add('sticky_header');
       } else {
         headerRef.current.classList.remove('sticky_header');
       }
-    });
-  };
+    };
 
-  useEffect(() => {
-    stickyHeaderFunc();
-    return () => window.removeEventListener('scroll', stickyHeaderFunc);
+    window.addEventListener('scroll', handleScroll);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
   }, []);
 
+
   const toggleMenu = () => {
+    if (!menuRef.current) return; // Prevent null reference errors
+
     menuRef.current.classList.toggle('show__menu');
-    setOpenDropdown(null); 
+    setOpenDropdown(null);
   };
 
   return (
@@ -81,7 +92,7 @@ const AdminNavbar = () => {
 
             {/* Navigation */}
             <div className="navigation" ref={menuRef} onClick={toggleMenu}>
-              <ul className="menu d-flex align-items-center gap-5">
+              <ul className="menu d-flex align-items-center gap-3">
                   {admin_dropdowns.map((item, index) => (
                     item.subItems ? (
                       <li className="nav_item dropdown" key={index}>

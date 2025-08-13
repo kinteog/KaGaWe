@@ -88,6 +88,7 @@ export const login = async (req, res) => {
       data: {
         ...rest,
         role: user.role,
+        photo: user.photo || null
       },
     });
 

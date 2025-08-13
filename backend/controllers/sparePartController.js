@@ -1,4 +1,6 @@
 import SparePart from '../models/SparePart.js';
+import fs from 'fs';
+import path from 'path';
 
 // Create a new spare part
 export const createSparePart = async (req, res) => {
@@ -43,12 +45,37 @@ export const deleteSparePart = async (req, res) => {
   const id = req.params.id;
 
   try {
+    const part = await SparePart.findById(id);
+
+    if (!part) {
+      return res.status(404).json({
+        success: false,
+        message: 'Spare part not found',
+      });
+    }
+
+    // ✅ Extract local file path from imageUrl
+    if (part.imageUrl) {
+      const relativePath = part.imageUrl.replace(/^.*\/uploads\//, 'uploads/'); // Remove base URL
+      const imagePath = path.resolve('uploads', relativePath);
+
+      fs.unlink(imagePath, (err) => {
+        if (err) {
+          console.warn('Failed to delete image:', imagePath, err.message);
+        } else {
+          console.log('Deleted image:', imagePath);
+        }
+      });
+    }
+
     await SparePart.findByIdAndDelete(id);
+
     res.status(200).json({
       success: true,
-      message: 'Spare part deleted successfully',
+      message: 'Spare part and image deleted successfully',
     });
   } catch (err) {
+    console.error('Delete error:', err);
     res.status(500).json({
       success: false,
       message: 'Failed to delete spare part.',

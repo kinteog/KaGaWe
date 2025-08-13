@@ -6,7 +6,7 @@ import {
 import { BASE_URL } from '../../utils/config';
 import CountUp from 'react-countup';
 import {
-  FaClipboardList, FaTools, FaCommentDots, FaStar, FaEdit
+  FaClipboardList, FaTools, FaCommentDots, FaStar
 } from 'react-icons/fa';
 import './admin.css';
 
@@ -263,11 +263,6 @@ const handleExportCSV = () => {
 };
 
 
-
-  const filteredServices = services.filter(service =>
-    service.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
     const totalPages = Math.ceil(filteredAndSortedServices.length / itemsPerPage);
     const currentItems = filteredAndSortedServices.slice(
     (currentPage - 1) * itemsPerPage,
@@ -436,7 +431,7 @@ const countStats = {
         <td>{service.priceRange}</td>
         <td>{service.estimatedDuration}</td>
         <td>
-          <img src={service.photo} alt={service.name} style={{ width: '80px', height: 'auto' }} />
+          <img src={`${BASE_URL}/uploads/${service.photo}`} alt={service.name} style={{ width: '80px', height: 'auto' }} />
         </td>
         <td>
           <ul style={{ paddingLeft: "1rem", margin: 0 }}>
@@ -515,7 +510,7 @@ const countStats = {
                 <p><strong>Estimated Duration:</strong> {selectedService.estimatedDuration}</p>
 
                 <p><strong>Photo:</strong></p>
-                <img src={selectedService.photo} alt={selectedService.name} style={{ width: '100%', maxHeight: '200px', objectFit: 'cover' }} />
+                <img src={`${BASE_URL}/uploads/${selectedService.photo}`} alt={selectedService.name} style={{ width: '100%', maxHeight: '200px', objectFit: 'cover' }} />
 
                 <p><strong>Booking Options:</strong></p>
                 <ul>
@@ -536,157 +531,201 @@ const countStats = {
       {[{ modal: createModal, setModal: setCreateModal, data: newService, setData: setNewService, action: handleCreateService, label: 'Add New Service' },
         { modal: editModal, setModal: setEditModal, data: selectedService, setData: setSelectedService, action: handleUpdateService, label: 'Edit Service' }]
         .map(({ modal, setModal, data, setData, action, label }) => (
-          <Modal key={label} isOpen={modal} toggle={() => setModal(false)}>
+          <Modal key={label} isOpen={modal} toggle={() => setModal(false)} className="modal-lg">
             <ModalHeader toggle={() => setModal(false)}>{label}</ModalHeader>
             <ModalBody>
-                <Form>
-                {/* Text Inputs */}
-                {[
-                { key: 'name', label: 'Service Name' },
-                { key: 'description', label: 'Description' },
-                { key: 'priceRange', label: 'Price Range' },
-                { key: 'estimatedDuration', label: 'Estimated Duration' },
-                { key: 'photo', label: 'Photo URL' }
-                ].map(({ key, label }) => (
-                <FormGroup key={key}>
-                    <Label>{label}</Label>
-                    {key === 'description' ? (
-                    <Input
+              <Form>
+                <Row>
+                  {/* Text Inputs */}
+                  {[
+                    { key: 'name', label: 'Service Name' },
+                    { key: 'priceRange', label: 'Price Range' },
+                    { key: 'estimatedDuration', label: 'Estimated Duration' },
+                  ].map(({ key, label }) => (
+                    <Col md={6} key={key}>
+                      <FormGroup>
+                        <Label>{label}</Label>
+                        <Input
+                          type="text"
+                          value={data?.[key] || ''}
+                          onChange={(e) =>
+                            setData((prev) => ({ ...prev, [key]: e.target.value }))
+                          }
+                        />
+                      </FormGroup>
+                    </Col>
+                  ))}
+
+                  {/* Description - Full Width */}
+                  <Col md={12}>
+                    <FormGroup>
+                      <Label>Description</Label>
+                      <Input
                         type="textarea"
-                        rows="4"
-                        value={data?.[key] || ''}
+                        rows="3"
+                        value={data?.description || ''}
                         onChange={(e) =>
-                        setData((prev) => ({ ...prev, [key]: e.target.value }))
+                          setData((prev) => ({ ...prev, description: e.target.value }))
                         }
-                    />
-                    ) : (
-                    <Input
-                        type="text"
-                        value={data?.[key] || ''}
-                        onChange={(e) =>
-                        setData((prev) => ({ ...prev, [key]: e.target.value }))
-                        }
-                    />
-                    )}
-                </FormGroup>
-                ))}
+                      />
+                    </FormGroup>
+                  </Col>
 
+                  {/* Image Upload */}
+                  <Col md={6}>
+                    <FormGroup>
+                      <Label>Service Image</Label>
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={async (e) => {
+                          const file = e.target.files[0];
+                          if (!file) return;
 
-                <FormGroup>
-                <Label>Category</Label>
-                {!isAddingNewCategory ? (
-                    <>
-                    <Input
-                        type="select"
-                        value={data?.category || ''}
-                        onChange={(e) => {
-                        if (e.target.value === '__new__') {
-                            setIsAddingNewCategory(true);
-                            setData(prev => ({ ...prev, category: '' }));
-                        } else {
-                            setData(prev => ({ ...prev, category: e.target.value }));
-                        }
+                          const formData = new FormData();
+                          formData.append('file', file);
+
+                          try {
+                            const res = await fetch(`${BASE_URL}/upload/services`, {
+                              method: 'POST',
+                              body: formData,
+                            });
+                            const result = await res.json();
+                            if (result.success) {
+                              setData((prev) => ({
+                                ...prev,
+                                photo: result.imagePath,
+                              }));
+                              alert('Image uploaded successfully');
+                            } else {
+                              alert('Failed to upload image');
+                            }
+                          } catch (err) {
+                            console.error('Image upload failed:', err);
+                            alert('Error uploading image');
+                          }
                         }}
-                    >
-                        <option value="">-- Select Category --</option>
-                        {allCategories.map(cat => (
-                        <option key={cat} value={cat}>{cat}</option>
-                        ))}
-                        <option value="__new__">+ Add new category</option>
-                    </Input>
-                    </>
-                ) : (
-                    <>
-                    <Input
-                        type="text"
-                        placeholder="Enter new category"
-                        value={data?.category || ''}
-                        onChange={(e) => setData(prev => ({ ...prev, category: e.target.value }))}
-                    />
-                    <Button color="link" size="sm" onClick={() => {
-                        setIsAddingNewCategory(false);
-                        setData(prev => ({ ...prev, category: '' }));
-                    }}>
-                        Cancel
-                    </Button>
-                    </>
-                )}
-                </FormGroup>
+                      />
+                      {data?.photo && (
+                        <img
+                          src={`${BASE_URL}/uploads/${data.photo}`}
+                          alt="Preview"
+                          style={{ width: '100px', marginTop: '10px' }}
+                        />
+                      )}
+                    </FormGroup>
+                  </Col>
 
-
-                {/* Booking Options */}
-                <FormGroup>
-                    <Label>Booking Options</Label>
-                    <div className="form-check">
-                    <Input
-                        type="checkbox"
-                        className="form-check-input"
-                        checked={data?.bookingOptions?.onlinePayment || false}
-                        onChange={(e) =>
-                        setData(prev => ({
-                            ...prev,
-                            bookingOptions: {
-                            ...prev.bookingOptions,
-                            onlinePayment: e.target.checked
+                  {/* Category */}
+                  <Col md={6}>
+                    <FormGroup>
+                      <Label>Category</Label>
+                      {!isAddingNewCategory ? (
+                        <>
+                          <Input
+                            type="select"
+                            value={data?.category || ''}
+                            onChange={(e) => {
+                              if (e.target.value === '__new__') {
+                                setIsAddingNewCategory(true);
+                                setData((prev) => ({ ...prev, category: '' }));
+                              } else {
+                                setData((prev) => ({
+                                  ...prev,
+                                  category: e.target.value,
+                                }));
+                              }
+                            }}
+                          >
+                            <option value="">-- Select Category --</option>
+                            {allCategories.map((cat) => (
+                              <option key={cat} value={cat}>
+                                {cat}
+                              </option>
+                            ))}
+                            <option value="__new__">+ Add new category</option>
+                          </Input>
+                        </>
+                      ) : (
+                        <>
+                          <Input
+                            type="text"
+                            placeholder="Enter new category"
+                            value={data?.category || ''}
+                            onChange={(e) =>
+                              setData((prev) => ({ ...prev, category: e.target.value }))
                             }
-                        }))
-                        }
-                    />{' '}
-                    Online Payment
-                    </div>
-                    <div className="form-check">
-                    <Input
-                        type="checkbox"
-                        className="form-check-input"
-                        checked={data?.bookingOptions?.depositRequired || false}
-                        onChange={(e) =>
-                        setData(prev => ({
-                            ...prev,
-                            bookingOptions: {
-                            ...prev.bookingOptions,
-                            depositRequired: e.target.checked
-                            }
-                        }))
-                        }
-                    />{' '}
-                    Deposit Required
-                    </div>
-                    <div className="form-check">
-                    <Input
-                        type="checkbox"
-                        className="form-check-input"
-                        checked={data?.bookingOptions?.payOnArrival || false}
-                        onChange={(e) =>
-                        setData(prev => ({
-                            ...prev,
-                            bookingOptions: {
-                            ...prev.bookingOptions,
-                            payOnArrival: e.target.checked
-                            }
-                        }))
-                        }
-                    />{' '}
-                    Pay on Arrival
-                    </div>
-                </FormGroup>
+                          />
+                          <Button
+                            color="link"
+                            size="sm"
+                            onClick={() => {
+                              setIsAddingNewCategory(false);
+                              setData((prev) => ({ ...prev, category: '' }));
+                            }}
+                          >
+                            Cancel
+                          </Button>
+                        </>
+                      )}
+                    </FormGroup>
+                  </Col>
 
-                {/* Featured */}
-                <FormGroup check>
-                    <Label check>
-                    <Input
-                        type="checkbox"
-                        checked={data?.featured || false}
-                        onChange={(e) => setData(prev => ({ ...prev, featured: e.target.checked }))}
-                    />{' '}
-                    Featured
-                    </Label>
-                </FormGroup>
-                </Form>
+                  {/* Booking Options - Full Width */}
+                  <Col md={12}>
+                    <FormGroup>
+                      <Label>Booking Options</Label>
+                      {[
+                        { key: 'onlinePayment', label: 'Online Payment' },
+                        { key: 'depositRequired', label: 'Deposit Required' },
+                        { key: 'payOnArrival', label: 'Pay on Arrival' },
+                      ].map(({ key, label }) => (
+                        <div className="form-check" key={key}>
+                          <Input
+                            type="checkbox"
+                            className="form-check-input"
+                            checked={data?.bookingOptions?.[key] || false}
+                            onChange={(e) =>
+                              setData((prev) => ({
+                                ...prev,
+                                bookingOptions: {
+                                  ...prev.bookingOptions,
+                                  [key]: e.target.checked,
+                                },
+                              }))
+                            }
+                          />{' '}
+                          {label}
+                        </div>
+                      ))}
+                    </FormGroup>
+                  </Col>
 
+                  {/* Featured */}
+                  <Col md={12}>
+                    <FormGroup check>
+                      <Label check>
+                        <Input
+                          type="checkbox"
+                          checked={data?.featured || false}
+                          onChange={(e) =>
+                            setData((prev) => ({ ...prev, featured: e.target.checked }))
+                          }
+                        />{' '}
+                        Featured
+                      </Label>
+                    </FormGroup>
+                  </Col>
+                </Row>
+              </Form>
             </ModalBody>
             <ModalFooter>
-              <Button color="primary" onClick={action}>Save</Button>
-              <Button color="secondary" onClick={() => setModal(false)}>Cancel</Button>
+              <Button color="primary" onClick={action}>
+                Save
+              </Button>
+              <Button color="secondary" onClick={() => setModal(false)}>
+                Cancel
+              </Button>
             </ModalFooter>
           </Modal>
         ))}

@@ -92,7 +92,6 @@ const ECUFileDetails = () => {
     ecuVersion,
     tuningStage,
     compatibleVehicles,
-    downloadLink,
     price,
     reviews,
     } = ecuFile;
@@ -111,7 +110,7 @@ const ECUFileDetails = () => {
         <Row>
           <Col lg="8">
             <div className="tour_content">
-              <img src={imageUrl} alt={title} />
+              <img src={`${BASE_URL}/uploads/${imageUrl}`}  alt={title} />
               <h2>{title}</h2>
 
               <div className="d-flex align-items-center gap-5">

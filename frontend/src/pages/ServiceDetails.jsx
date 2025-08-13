@@ -103,7 +103,7 @@ const ServiceDetails = () => {
           <Row>
             <Col lg="8">
               <div className="tour_content">
-                <img src={photo} alt="" />
+                <img src={`${BASE_URL}/uploads/${photo}`} alt={name} />
                 <h2>{name}</h2>
 
                 <div className="d-flex align-items-center gap-5">

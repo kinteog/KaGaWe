@@ -23,6 +23,10 @@ import ecuFileRoutes from './routes/ecuFileRoutes.js';
 import ecuFileOrderRoutes from './routes/ecuFileOrderRoutes.js';
 import reviewEcuFileRoutes from './routes/reviewEcuFileRoutes.js';
 
+import uploadRoutes from './routes/uploadRoutes.js';
+import newsletterRoutes from './routes/newsletterRoutes.js';
+
+
 dotenv.config()
 const app = express()
 const port = process.env.PORT || 8000;
@@ -71,6 +75,14 @@ app.use('/api/v1/reviewspareparts', reviewSparePartRoutes);
 app.use('/api/v1/ecufiles', ecuFileRoutes);
 app.use('/api/v1/ecufileorders', ecuFileOrderRoutes);
 app.use('/api/v1/reviewecufile', reviewEcuFileRoutes);
+
+app.use('/api/v1/newsletter', newsletterRoutes);
+
+
+app.use('/api/v1/upload', uploadRoutes);
+
+// Serve static files
+app.use('/api/v1/uploads/', express.static('uploads'));
 
 
 app.listen(port, ()=>{

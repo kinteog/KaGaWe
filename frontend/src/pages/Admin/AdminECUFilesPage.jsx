@@ -92,6 +92,34 @@ const AdminECUFilesPage = () => {
   useEffect(() => {
     fetchECUFiles();
   }, []);
+
+    const handleImageUpload = async (e, setData) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const res = await fetch(`${BASE_URL}/upload/ecufiles`, {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+      });
+
+      const result = await res.json();
+      if (result.success) {
+        setData(prev => ({ ...prev, imageUrl: result.imagePath })); // Make sure backend returns filePath
+        alert('Image uploaded successfully!');
+      } else {
+        alert(result.message || 'Image upload failed!');
+      }
+    } catch (err) {
+      console.error('Upload error:', err);
+      alert('Upload error');
+    }
+  };
+
   
 
   const handleCreateFile = async () => {
@@ -367,7 +395,7 @@ const AdminECUFilesPage = () => {
                 <td>Ksh {file.price}</td>
                 <td>{file.status}</td>
                 <td>{totalReviews > 0 ? `${avgRating} (${totalReviews})` : 'N/A'}</td>
-                <td><img src={file.imageUrl} alt={file.title} width="60" /></td>
+                <td><img src= {`${BASE_URL}/uploads/${file.imageUrl}`} alt={file.title} width="60" /></td>
                 <td>
                   <Button size="sm" color="info" className="me-1" onClick={() => { setSelectedFile(file); setViewModal(true); }}>View</Button>
                   <Button size="sm" color="warning" className="me-1" onClick={() => { setSelectedFile(file); setEditModal(true); }}>Edit</Button>
@@ -431,7 +459,7 @@ const AdminECUFilesPage = () => {
                     <p><strong>Featured:</strong> {selectedFile.isFeatured ? 'Yes' : 'No'}</p>
                     <p><strong>Compatible Vehicles:</strong> {selectedFile.compatibleVehicles?.join(', ') || 'N/A'}</p>
                     <p><strong>Image:</strong></p>
-                    <img src={selectedFile.imageUrl} alt={selectedFile.title} style={{ width: '100%', maxHeight: '200px', objectFit: 'cover' }} />
+                    <img src={`${BASE_URL}/uploads/${selectedFile.imageUrl}`} alt={selectedFile.title} style={{ width: '100%', maxHeight: '200px', objectFit: 'cover' }} />
                 </>
                 )}
             </ModalBody>
@@ -575,10 +603,20 @@ const AdminECUFilesPage = () => {
 
                 </Col>
                 <Col md={6}>
-                    <FormGroup>
-                    <Label>Image URL</Label>
-                    <Input type="text" value={data.imageUrl} onChange={(e) => setData(prev => ({ ...prev, imageUrl: e.target.value }))} />
-                    </FormGroup>
+                  <FormGroup>
+                    <Label>Upload Image</Label>
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleImageUpload(e, setData)}
+                    />
+                    {data.imageUrl && (
+                      <div className="mt-2">
+                        <img src= {`${BASE_URL}/uploads/${data.imageUrl}`} alt="Preview" style={{ width: '100px', height: 'auto' }} />
+                      </div>
+                    )}
+                  </FormGroup>
+
                 </Col>
                 </Row>
 

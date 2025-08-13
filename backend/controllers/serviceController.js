@@ -1,4 +1,6 @@
 import Service from '../models/Service.js';
+import fs from 'fs';
+import path from 'path';
 
 // Create a new service
 export const createService = async (req, res) => {
@@ -45,20 +47,40 @@ export const updateService = async (req, res) => {
 
 // Delete a service
 export const deleteService = async (req, res) => {
-    const id = req.params.id;
+  const id = req.params.id;
 
-    try {
-        await Service.findByIdAndDelete(id);
-        res.status(200).json({
-            success: true,
-            message: 'Successfully deleted',
-        });
-    } catch (err) {
-        res.status(500).json({
-            success: false,
-            message: 'Failed to delete. Try again',
-        });
+  try {
+    const service = await Service.findById(id);
+    if (!service) {
+      return res.status(404).json({ success: false, message: 'Service not found' });
     }
+
+    // Delete image file from disk if it exists
+    if (service.photo) {
+      const imagePath = path.join('uploads', service.photo); // Assuming photo is like 'services/filename.jpg'
+      fs.unlink(imagePath, (err) => {
+        if (err) {
+          console.warn('Failed to delete image or image not found:', imagePath);
+        } else {
+          console.log('Deleted image file:', imagePath);
+        }
+      });
+    }
+
+    // Delete the service from DB
+    await Service.findByIdAndDelete(id);
+
+    res.status(200).json({
+      success: true,
+      message: 'Service and associated image deleted successfully',
+    });
+  } catch (err) {
+    console.error('Error deleting service:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete service',
+    });
+  }
 };
 
 // Get a single service

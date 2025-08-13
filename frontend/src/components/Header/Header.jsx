@@ -44,11 +44,14 @@ const logout = () =>{
 
 const stickyHeaderFunc = ()=>{
   window.addEventListener('scroll', ()=>{
-    if(document.body.scrollTop >80 || document.documentElement.scrollTop >80){
-      headerRef.current.classList.add('sticky_header')
-    }else{
-      headerRef.current.classList.remove('sticky_header')
-    }
+      if (!headerRef.current) return; // ✅ Prevent null error
+
+      if (document.body.scrollTop > 80 || document.documentElement.scrollTop > 80) {
+        headerRef.current.classList.add('sticky_header');
+      } else {
+        headerRef.current.classList.remove('sticky_header');
+      }
+
   })
 }
 
@@ -58,7 +61,12 @@ useEffect(()=>{
   return window.removeEventListener('scroll', stickyHeaderFunc)
 })
 
-const toggleMenu = ()=> menuRef.current.classList.toggle('show__menu');
+const toggleMenu = () => {
+  if (menuRef.current) {
+    menuRef.current.classList.toggle('show__menu'); // ✅ Safe toggle
+  }
+};
+
 
   return (<header className="header" ref={headerRef}>
     <Container>
@@ -128,7 +136,7 @@ const toggleMenu = ()=> menuRef.current.classList.toggle('show__menu');
               </div>
 
               <span className="mobile_menu" onClick={toggleMenu}>
-                <i class="ri-menu-line"></i>
+                <i className="ri-menu-line"></i>
               </span>
           </div>
         </div>

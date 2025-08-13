@@ -5,7 +5,6 @@ import {
 } from 'reactstrap';
 import { AuthContext } from '../context/AuthContext';
 import { BASE_URL } from '../utils/config';
-import defaultAvatar from '../assets/images/user.png';
 import '../styles/UserProfilePage.css';
 import { useNavigate } from 'react-router-dom';
 
@@ -61,7 +60,73 @@ const UserProfilePage = () => {
     }
   }, [user]);
 
+  const [ecuOrders, setEcuOrders] = useState([]);
+const [sparePartOrders, setSparePartOrders] = useState([]);
 
+useEffect(() => {
+  const token = localStorage.getItem('token');
+
+  const fetchECUOrders = async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/ecufileorders/user/${user._id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setEcuOrders(data.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
+      }
+    } catch (err) {
+      console.error('ECU orders fetch error:', err);
+    }
+  };
+
+  const fetchSparePartOrders = async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/sparepartorders/user/${user._id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setSparePartOrders(data.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
+      }
+    } catch (err) {
+      console.error('Spare part orders fetch error:', err);
+    }
+  };
+
+  if (user?._id) {
+    fetchECUOrders();
+    fetchSparePartOrders();
+  }
+}, [user]);
+
+
+  const handleImageUpload = async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  try {
+    const res = await fetch(`${BASE_URL}/upload/avatars`, {
+      method: "POST",
+      body: formData,
+      credentials: "include",
+    });
+
+    const result = await res.json();
+    if (result.success) {
+      setEditData(prev => ({ ...prev, photo: result.imagePath }));
+      alert("Profile picture uploaded successfully!");
+    } else {
+      alert(result.message || "Image upload failed!");
+    }
+  } catch (err) {
+    console.error("Upload error:", err);
+    alert("Upload error");
+  }
+};
 
 
   const handleSaveChanges = async () => {
@@ -73,6 +138,7 @@ const UserProfilePage = () => {
         username: editData.name,
         email: editData.email,
         phone: editData.phone,
+        photo: editData.photo,
       };
 
       if (changePassword) {
@@ -105,6 +171,7 @@ const UserProfilePage = () => {
         username: result.data.username,
         email: result.data.email,
         phone: result.data.phone,
+        photo: result.data.photo,
       };
 
       dispatch({ type: 'UPDATE_PROFILE', payload: updatedUser });
@@ -133,10 +200,15 @@ const UserProfilePage = () => {
         <div className="profile-layout">
           <div className="profile-left">
             <img
-              src={user.photo ? user.photo : defaultAvatar}
+              src={
+                user?.photo
+                  ? `${BASE_URL}/uploads/${user.photo}`
+                  : `${BASE_URL}/uploads/avatars/avatar.jpg`
+              }
               alt="Profile"
               className="profile-avatar"
             />
+
           </div>
 
           <div className="profile-right">
@@ -192,6 +264,65 @@ const UserProfilePage = () => {
         </div>
       )}
 
+      {ecuOrders.length > 0 && (
+  <div className="mt-4">
+    <h5>Your ECU File Orders</h5>
+    <div className="table-responsive">
+      <table className="table table-bordered table-hover">
+        <thead className="table-light">
+          <tr>
+            <th>ECU File Title</th>
+            <th>Vehicle</th>
+            <th>Engine Code</th>
+            <th>Order Date</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {ecuOrders.map(order => (
+            <tr key={order._id}>
+              <td>{order.ecuFileTitle}</td>
+              <td>{`${order.vehicleMake} ${order.vehicleModel} (${order.vehicleYear})`}</td>
+              <td>{order.engineCode}</td>
+              <td>{new Date(order.createdAt).toLocaleDateString()}</td>
+              <td>{order.status || 'Pending'}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+)}
+
+{sparePartOrders.length > 0 && (
+  <div className="mt-4">
+    <h5>Your Spare Part Orders</h5>
+    <div className="table-responsive">
+      <table className="table table-bordered table-hover">
+        <thead className="table-light">
+          <tr>
+            <th>Part Name</th>
+            <th>Quantity</th>
+            <th>Order Date</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {sparePartOrders.map(order => (
+            <tr key={order._id}>
+              <td>{order.partName}</td>
+              <td>{order.quantity}</td>
+              <td>{new Date(order.createdAt).toLocaleDateString()}</td>
+              <td>{order.status || 'Pending'}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+)}
+
+
 
       {/* Edit Modal (unchanged) */}
       <Modal isOpen={editModal} toggle={() => setEditModal(false)}>
@@ -210,6 +341,28 @@ const UserProfilePage = () => {
               <Label>Phone</Label>
               <Input type="text" value={editData.phone || ''} onChange={(e) => setEditData(prev => ({ ...prev, phone: e.target.value }))} />
             </FormGroup>
+            <FormGroup>
+              <Label>Profile Picture</Label>
+              <div style={{ textAlign: "center", marginBottom: "10px" }}>
+                <img
+                  src={
+                    editData.photo
+                      ? `${BASE_URL}/uploads/${editData.photo}`
+                      : `${BASE_URL}/uploads/avatars/avatar.jpg`
+                  }
+                  alt="Profile Preview"
+                  style={{
+                    width: "100px",
+                    height: "100px",
+                    borderRadius: "50%",
+                    objectFit: "cover",
+                    border: "2px solid #ddd",
+                  }}
+                />
+              </div>
+              <Input type="file" onChange={handleImageUpload} />
+            </FormGroup>
+
             <FormGroup check className="mt-3">
               <Label check>
                 <Input type="checkbox" checked={changePassword} onChange={(e) => setChangePassword(e.target.checked)} />

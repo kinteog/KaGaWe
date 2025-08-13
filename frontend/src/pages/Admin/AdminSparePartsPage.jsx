@@ -103,50 +103,95 @@ const AdminSparePartsPage = () => {
     fetchSpareParts();
   }, []);
 
-  const handleCreatePart = async () => {
+
+    const handleImageUpload = async (e, setData) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
     try {
-      const res = await fetch(`${BASE_URL}/spareparts`, {
+      const res = await fetch(`${BASE_URL}/upload/spareparts`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(newPart)
+        body: formData,
+        credentials: 'include'
       });
+
       const result = await res.json();
       if (result.success) {
-        alert('Spare part created');
-        setCreateModal(false);
-        setNewPart({
-          name: '', description: '', category: '', manufacturer: '', partNumber: '', price: '',
-          stockQuantity: '', condition: 'New', imageUrl: '', location: '', isFeatured: false,
-          compatibleModels: [], shippingOptions: []
-        });
-        fetchSpareParts();
+        setData(prev => ({ ...prev, imageUrl: result.imagePath }));
+        alert('Image uploaded successfully!');
       } else {
-        alert('Failed to create spare part');
+        alert('Image upload failed!');
       }
     } catch (err) {
-      console.error(err);
+      console.error('Upload error:', err);
+      alert('Upload error');
     }
   };
 
-  const handleUpdatePart = async () => {
-    try {
-      const res = await fetch(`${BASE_URL}/spareparts/${selectedPart._id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(selectedPart)
+
+const handleCreatePart = async () => {
+  if (!newPart.imageUrl) {
+    alert('Please upload an image first');
+    return;
+  }
+
+  try {
+    const res = await fetch(`${BASE_URL}/spareparts`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(newPart)
+    });
+
+    const result = await res.json();
+    if (result.success) {
+      alert('Spare part created');
+      setCreateModal(false);
+      setNewPart({
+        name: '', description: '', category: '', manufacturer: '', partNumber: '', price: '',
+        stockQuantity: '', condition: 'New', imageUrl: '', location: '', isFeatured: false,
+        compatibleModels: [], shippingOptions: []
       });
-      const result = await res.json();
-      if (result.success) {
-        alert('Spare part updated');
-        setEditModal(false);
-        fetchSpareParts();
-      }
-    } catch (err) {
-      console.error(err);
+      fetchSpareParts();
+    } else {
+      alert(result.message || 'Failed to create spare part');
     }
-  };
+  } catch (err) {
+    console.error('Create error:', err);
+  }
+};
+
+
+const handleUpdatePart = async () => {
+  if (!selectedPart.imageUrl) {
+    alert('Please upload an image before saving');
+    return;
+  }
+
+  try {
+    const res = await fetch(`${BASE_URL}/spareparts/${selectedPart._id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(selectedPart)
+    });
+
+    const result = await res.json();
+    if (result.success) {
+      alert('Spare part updated');
+      setEditModal(false);
+      fetchSpareParts();
+    } else {
+      alert(result.message || 'Failed to update');
+    }
+  } catch (err) {
+    console.error('Update error:', err);
+  }
+};
+
 
   const handleDeletePart = async (id) => {
     if (!window.confirm('Delete this spare part?')) return;
@@ -365,7 +410,7 @@ return (
               <td>Ksh {part.price}</td>
               <td>{part.stockQuantity}</td>
               <td>{part.condition}</td>
-              <td><img src={part.imageUrl} alt={part.name} style={{ width: '80px', height: 'auto' }} /></td>
+              <td><img src={`${BASE_URL}/uploads/${part.imageUrl}`} alt={part.name} style={{ width: '80px', height: 'auto' }} /></td>
               <td>{part.isFeatured ? 'Yes' : 'No'}</td>
               <td>
                 {(() => {
@@ -438,7 +483,7 @@ return (
             <p><strong>Condition:</strong> {selectedPart.condition}</p>
             <p><strong>Location:</strong> {selectedPart.location}</p>
             <p><strong>Image:</strong></p>
-            <img src={selectedPart.imageUrl} alt={selectedPart.name} style={{ width: '100%', maxHeight: '200px', objectFit: 'cover' }} />
+            <img src={`${BASE_URL}/uploads/${selectedPart.imageUrl}`} alt={selectedPart.name} style={{ width: '100%', maxHeight: '200px', objectFit: 'cover' }} />
             <p><strong>Compatible Models:</strong> {selectedPart.compatibleModels?.join(', ') || 'N/A'}</p>
             <p><strong>Shipping Options:</strong> {selectedPart.shippingOptions?.join(', ') || 'N/A'}</p>
             <p><strong>Featured:</strong> {selectedPart.isFeatured ? 'Yes' : 'No'}</p>
@@ -554,13 +599,21 @@ return (
 
                 <Col md={12}>
                   <FormGroup>
-                    <Label>Image URL</Label>
+                    <Label>Image Upload</Label>
                     <Input
-                      type="text"
-                      value={data?.imageUrl || ''}
-                      onChange={(e) => setData(prev => ({ ...prev, imageUrl: e.target.value }))}
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleImageUpload(e, setData)}
                     />
+                    {data?.imageUrl && (
+                      <img
+                        src={`${BASE_URL}/uploads/${data.imageUrl}`}
+                        alt="Preview"
+                        style={{ width: '100px', marginTop: '10px' }}
+                      />
+                    )}
                   </FormGroup>
+
                 </Col>
               </Row>
 

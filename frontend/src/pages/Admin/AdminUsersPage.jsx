@@ -28,9 +28,44 @@ const AdminUsersPage = () => {
     password: '',
     phone: '',
     role: 'user',
+    photo: ''
   });
 
+const handleImageUpload = async (e, setData) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  try {
+    const res = await fetch(`${BASE_URL}/upload/avatars`, {
+      method: "POST",
+      body: formData,
+      credentials: "include",
+    });
+
+    const result = await res.json();
+    if (result.success) {
+      setData(prev => ({ ...prev, photo: result.imagePath }));
+      alert("Image uploaded successfully!");
+    } else {
+      alert(result.message || "Image upload failed!");
+    }
+  } catch (err) {
+    console.error("Upload error:", err);
+    alert("Upload error");
+  }
+};
+
+
 const handleCreateUser = async () => {
+
+  if (!newUser.photo) {
+    alert("Please upload a profile picture first");
+    return;
+  }
+
   try {
     const res = await fetch(`${BASE_URL}/users`, {
       method: 'POST',
@@ -146,6 +181,12 @@ const handleCreateUser = async () => {
   };
 
 const handleUpdate = async () => {
+
+  if (!selectedUser.photo) {
+    alert("Please upload a profile picture first");
+    return;
+  }
+
   try {
     const payload = {
       ...selectedUser,
@@ -292,6 +333,8 @@ const handleUpdate = async () => {
                   Role {getSortArrow('role')}
                 </th>
 
+                <th>Image</th>
+
                 <th
                   onClick={() => handleSort('createdAt')}
                   className={sortConfig.key === 'createdAt' ? 'sorted-column' : ''}
@@ -320,6 +363,22 @@ const handleUpdate = async () => {
               <td>{user.email}</td>
               <td>{user.phone || 'N/A'}</td>
               <td>{user.role}</td>
+              <td>
+                <img
+                  src={
+                    user.photo
+                      ? `${BASE_URL}/uploads/${user.photo}`
+                      : `${BASE_URL}/uploads/avatars/avatar.jpg`
+                  }
+                  alt={user.name}
+                  style={{
+                    width: "50px",
+                    height: "50px",
+                    borderRadius: "50%",
+                    objectFit: "cover",
+                  }}
+                />
+              </td>
               <td>{new Date(user.createdAt).toLocaleString()}</td>
               <td>{new Date(user.updatedAt).toLocaleString()}</td>
               <td>
@@ -393,6 +452,24 @@ const handleUpdate = async () => {
         <ModalBody>
           {selectedUser && (
             <>
+
+              <div style={{ textAlign: "center", marginBottom: "15px" }}>
+                <img
+                  src={
+                    selectedUser.photo
+                      ? `${BASE_URL}/uploads/${selectedUser.photo}`
+                      : `${BASE_URL}/uploads/avatars/avatar.jpg`
+                  }
+                  alt={selectedUser.name}
+                  style={{
+                    width: "180px",
+                    height: "180px",
+                    borderRadius: "50%",
+                    objectFit: "cover",
+                    border: "2px solid #ddd",
+                  }}
+                />
+              </div>
               <p><strong>Username:</strong> {selectedUser.username}</p>
               <p><strong>Email:</strong> {selectedUser.email}</p>
               <p><strong>Role:</strong> {selectedUser.role}</p>
@@ -451,6 +528,21 @@ const handleUpdate = async () => {
                 />
               </FormGroup>
 
+              <FormGroup>
+                <Label>Profile Picture</Label>
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleImageUpload(e, setSelectedUser)}
+                />
+                {selectedUser?.photo && (
+                  <img
+                    src={`${BASE_URL}/uploads/${selectedUser.photo}`}
+                    alt="Preview"
+                    style={{ width: "80px", marginTop: "5px", borderRadius: "5px" }}
+                  />
+                )}
+              </FormGroup>
 
               <FormGroup>
                 <Label>Role</Label>
@@ -471,6 +563,7 @@ const handleUpdate = async () => {
           <Button color="secondary" onClick={() => setEditModal(false)}>Cancel</Button>
         </ModalFooter>
       </Modal>
+
       {/* Add Modal */}
       <Modal isOpen={addModal} toggle={() => setAddModal(!addModal)}>
         <ModalHeader toggle={() => setAddModal(false)}>Create New User</ModalHeader>
@@ -511,6 +604,21 @@ const handleUpdate = async () => {
               />
             </FormGroup>
 
+            <FormGroup>
+              <Label>Profile Picture</Label>
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={(e) => handleImageUpload(e, setNewUser)}
+              />
+              {newUser.photo && (
+                <img
+                  src={`${BASE_URL}/uploads/${newUser.photo}`}
+                  alt="Preview"
+                  style={{ width: "80px", marginTop: "5px", borderRadius: "5px" }}
+                />
+              )}
+            </FormGroup>
 
             <FormGroup>
               <Label>Role</Label>

@@ -1,4 +1,6 @@
 import ECUFile from '../models/ECUFile.js';
+import fs from 'fs';
+import path from 'path';
 
 // ✅ Create a new ECU file
 export const createECUFile = async (req, res) => {
@@ -38,23 +40,62 @@ export const updateECUFile = async (req, res) => {
   }
 };
 
-// ✅ Delete ECU file
+
+// ✅ Delete ECU file + associated image
 export const deleteECUFile = async (req, res) => {
   const id = req.params.id;
 
   try {
+    const ecuFile = await ECUFile.findById(id);
+    if (!ecuFile) {
+      return res.status(404).json({
+        success: false,
+        message: 'ECU file not found',
+      });
+    }
+
+    // ✅ Delete image from server if exists
+    if (ecuFile.imageUrl) {
+      let relativePath = ecuFile.imageUrl;
+
+      // If it's a full URL, strip the domain part
+      if (relativePath.includes('/uploads/')) {
+        relativePath = relativePath.split('/uploads/')[1];
+        relativePath = path.join('uploads', relativePath);
+      }
+
+      // If it doesn't already start with 'uploads/', add it
+      if (!relativePath.startsWith('uploads')) {
+        relativePath = path.join('uploads', relativePath);
+      }
+
+      const imagePath = path.resolve(relativePath);
+
+      fs.unlink(imagePath, (err) => {
+        if (err) {
+          console.warn('Failed to delete ECU image:', imagePath, err.message);
+        } else {
+          console.log('Deleted ECU image:', imagePath);
+        }
+      });
+    }
+
+    // ✅ Delete DB record
     await ECUFile.findByIdAndDelete(id);
+
     res.status(200).json({
       success: true,
-      message: 'ECU file deleted successfully',
+      message: 'ECU file and image deleted successfully',
     });
   } catch (err) {
+    console.error('Delete ECU file error:', err);
     res.status(500).json({
       success: false,
       message: 'Failed to delete ECU file.',
     });
   }
 };
+
 
 // ✅ Get a single ECU file
 export const getSingleECUFile = async (req, res) => {

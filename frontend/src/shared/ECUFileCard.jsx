@@ -3,6 +3,7 @@ import { Card, CardBody } from 'reactstrap';
 import { Link } from 'react-router-dom';
 import calculateAvgRating from '../utils/avgRating';
 import './service-card.css'; // or use ecu-file-card.css if preferred
+import { BASE_URL } from '../utils/config';
 
 const ECUFileCard = ({ file }) => {
   const {
@@ -29,7 +30,7 @@ const ECUFileCard = ({ file }) => {
     <div className='tour_card'>
       <Card>
         <div className="tour_img ecu_card_img">
-          <img src={imageUrl} alt="ECU-file-img" />
+          <img src={`${BASE_URL}/uploads/${imageUrl}`}  alt="ECU-file-img" />
           {isFeatured && <span>Featured</span>}
         </div>
 

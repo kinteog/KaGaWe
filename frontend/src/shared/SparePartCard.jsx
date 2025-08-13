@@ -3,6 +3,7 @@ import { Card, CardBody } from 'reactstrap';
 import { Link } from 'react-router-dom';
 import calculateAvgRating from '../utils/avgRating'; 
 import "./service-card.css"; // or create new `spare-part-card.css`
+import { BASE_URL } from '../utils/config';
 
 const SparePartCard = ({ part }) => {
   const { _id, name, description, price, category, isFeatured, imageUrl, stockQuantity, reviews } = part;
@@ -12,7 +13,7 @@ const SparePartCard = ({ part }) => {
     <div className='tour_card'>
       <Card>
         <div className="tour_img">
-          <img src={imageUrl} alt="spare-part-img" />
+          <img src={`${BASE_URL}/uploads/${imageUrl}`} alt="spare-part-img" />
             {isFeatured && <span>Featured</span>}
         </div>
 

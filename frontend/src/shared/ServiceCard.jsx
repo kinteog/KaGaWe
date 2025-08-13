@@ -3,6 +3,7 @@ import { Card, CardBody } from 'reactstrap';
 import { Link } from 'react-router-dom';
 import calculateAvgRating from '../utils/avgRating'; // ✅ Import rating calculator
 import "./service-card.css";
+import { BASE_URL } from '../utils/config';
 
 const ServiceCard = ({ service }) => {
   const { _id, name, estimatedDuration, priceRange, category, photo, featured, reviews = [] } = service;
@@ -13,7 +14,7 @@ const ServiceCard = ({ service }) => {
     <div className='tour_card'>
       <Card>
         <div className="tour_img">
-          <img src={photo} alt="service-img" />
+          <img src={`${BASE_URL}/uploads/${photo}`} alt={name} />
           {featured && <span>Featured</span>}
         </div>
 

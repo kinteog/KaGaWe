@@ -30,6 +30,7 @@ import SpareParts from '../pages/SpareParts';
 import SparePartDetails from '../pages/SparePartDetails';
 import SparePartOrdersTable from '../pages/Admin/SparePartOrdersTable';
 import EcuFileOrdersTable from '../pages/Admin/EcuFileOrdersTable';
+import AdminNewsletterPage from '../pages/Admin/AdminNewsletterPage';
 
 import ECUFiles from "../pages/ECUFiles";
 import ECUFileSearchResults from "../pages/ECUFileSearchResults";
@@ -87,6 +88,7 @@ const Routers = () => {
         <Route path="ecufiles" element={<AdminECUFilesPage />} />
         <Route path="sparepart-orders" element={<SparePartOrdersTable />} />
         <Route path="ecufiles-orders" element={<EcuFileOrdersTable />} />
+        <Route path="newsletters" element={<AdminNewsletterPage />} />
 
 
       </Route>

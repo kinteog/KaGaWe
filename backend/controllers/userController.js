@@ -1,5 +1,7 @@
 import User from '../models/User.js'
 import bcrypt from 'bcryptjs';
+import fs from 'fs';
+import path from 'path';
 
 // create new User
 export const createUser = async (req, res) => {
@@ -115,27 +117,47 @@ export const updateUser = async (req, res) => {
 
 
 
-//delete User
-export const deleteUser =  async(req, res) => {
-    const id = req.params.id
+// Delete User
+// Delete User
+export const deleteUser = async (req, res) => {
+  const id = req.params.id;
 
-    try {
+  try {
+    const user = await User.findById(id);
 
-        await User.findByIdAndDelete(id);
-
-        res.status(200).json({
-            success:true, 
-            message:'Successfully Deleted'
-        });
-
-    } catch (err) {
-        res.status(500).json({
-            success:false, 
-            message:'Failed to delete. try again'
-        });
-        
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
     }
+
+    // ✅ Delete profile image if exists and is not default avatar
+    if (user.photo && !user.photo.includes('avatars/avatar.jpg')) {
+      // Ensure we point to "uploads" folder
+      const imagePath = path.join(process.cwd(), 'uploads', user.photo);
+
+      fs.unlink(imagePath, (err) => {
+        if (err) {
+          console.warn('Failed to delete user image:', imagePath, err.message);
+        } else {
+          console.log('Deleted user image:', imagePath);
+        }
+      });
+    }
+
+    await User.findByIdAndDelete(id);
+
+    res.status(200).json({
+      success: true,
+      message: 'User and profile image deleted successfully',
+    });
+  } catch (err) {
+    console.error('Delete error:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete user.',
+    });
+  }
 };
+
 
 //getSingle User
 export const getSingleUser =  async(req, res) => {

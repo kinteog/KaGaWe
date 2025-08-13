@@ -59,16 +59,16 @@ const Footer = () => {
 
               <div className="social_links d-flex align-items-center gap-4">
                 <span>
-                  <Link to='#'><i class="ri-youtube-line"></i></Link>
+                  <Link to='#'><i className="ri-youtube-line"></i></Link>
                 </span>
                 <span>
-                  <Link to='#'><i class="ri-github-fill"></i></Link>
+                  <Link to='#'><i className="ri-github-fill"></i></Link>
                 </span>
                 <span>
-                  <Link to='#'><i class="ri-facebook-circle-line"></i></Link>
+                  <Link to='#'><i className="ri-facebook-circle-line"></i></Link>
                 </span>
                 <span>
-                  <Link to='#'><i class="ri-instagram-line"></i></Link>
+                  <Link to='#'><i className="ri-instagram-line"></i></Link>
                 </span>
               </div>
             </div>
@@ -109,7 +109,7 @@ const Footer = () => {
 
                     <h6 className='mb-0 d-flex align-items-center gap-2'>
                       <span>
-                        <i class="ri-map-pin-line"></i>
+                        <i className="ri-map-pin-line"></i>
                       </span>
                       Address: 
                     </h6>
@@ -121,7 +121,7 @@ const Footer = () => {
 
                     <h6 className='mb-0 d-flex align-items-center gap-2'>
                       <span>
-                        <i class="ri-mail-line"></i>
+                        <i className="ri-mail-line"></i>
                       </span>
                       Email: 
                     </h6>
@@ -133,7 +133,7 @@ const Footer = () => {
 
                     <h6 className='mb-0 d-flex align-items-center gap-2'>
                       <span>
-                        <i class="ri-phone-fill"></i>
+                        <i className="ri-phone-fill"></i>
                       </span>
                       Phone: 
                     </h6>
