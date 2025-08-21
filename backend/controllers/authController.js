@@ -82,6 +82,8 @@ export const login = async (req, res) => {
     // Set cookie and return token and user data (including role)
     res.cookie('accessToken', token, {
       httpOnly: true,
+      secure: true,        // cookie only over HTTPS
+      sameSite: "None",
       expires: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000) // 15 days
     }).status(200).json({
       token,
